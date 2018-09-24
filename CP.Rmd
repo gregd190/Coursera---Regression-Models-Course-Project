@@ -1,0 +1,80 @@
+---
+title: "Regression Models Course Project"
+author: "Greg D"
+date: "21 September 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+## Effect of Transmission Choice on Fuel Efficiency
+
+Fuel efficiency is an important metric to consider when purchasing a car, as fuel consumption has both economic and environmental impacts. 
+
+This study looks at the effect of transmission choice (manual or automatic) on fuel consumption, using the mtcars dataset from 'Motor Trend' magazine 1973-1974.
+
+### Executive Summary
+
+A linear model was fit to the mtcars dataset, to study the effect of transmission choice on fuel efficiency. It was found that the effect was significant, with automatic cars consuming approximately 2.9 mpg more than manual cars.
+
+### Overview of dataset
+
+Firstly lets look at a summary of the dataset
+
+```{r cars}
+summary(mtcars)
+head(mtcars)
+```
+From the documentation, the 'am' variable is the transmission type, with 0 indicating an automatic, and a 1 indicating a manual. 
+
+Let's do a very basic comparison of the two types, but simply looking at the average fuel consumption of cars with each transmission type. 
+```{R}
+mtcars$transmission <- as.factor(mtcars$am)
+levels(mtcars$transmission)<- c("auto", "manual")
+
+mean(mtcars$mpg[mtcars$transmission=="auto"])
+
+mean(mtcars$mpg[mtcars$transmission=="manual"])
+
+```
+It can be seen that, of the models in the dataset, manual cars had an average fuel consumption of 17.1 mpg, compared to 24.4 mpg for automatic vehicles. 
+
+This is a bit simplistic though. It might be that automatic transmissions tend to be fitted to larger cars, or cars with larger engines.
+
+Let's fit a linear model and see which factors have the greatest effect on fuel consumption, and try and see the effect of transmission type on its own. 
+
+
+```{R}
+fit <- lm(mpg ~ ., mtcars)
+
+summary(fit)
+```
+Let's try dropping a few of the features that don't correlate with mpg (coefficients near 0) and see if we can improve our fit at all. 
+
+```{R}
+fit2 <- lm(mpg ~ cyl+wt+qsec+am+drat+gear, mtcars)
+summary(fit2)
+```
+
+
+Lets see if simplifying things further improves our results:
+```{R}
+fit3 <- lm(mpg ~ wt + qsec + am, mtcars)
+summary(fit3)
+```
+This model has the greatest adjusted R-squared value, and the lowest standard error for the transmission factor.
+
+Let's plot the residuals of this model to see if there are any discernable patterns:
+
+```{R}
+plot(fit3$residuals)
+abline(h=0, col='red')
+```
+
+Residuals are evenly distributed around the zero line, with no obvious pattern. It is unlikely there is significant improvement available with a linear model. 
+
+###Conclusion
+It was found that, correcting for the other significant factors, transmission does have a significant impact on fuel efficiency: an automatic transmission adds approximately 2.9 mpg (standard error 1.4 mpg) to the fuel consumption of a vehicle.
